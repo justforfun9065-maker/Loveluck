@@ -1,0 +1,509 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#74163f">
+<title>LoveLuck | A Little Love Story</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --wine:#74163f;
+  --rose:#c52d6d;
+  --pink:#f4a5c4;
+  --blush:#fff0f5;
+  --cream:#fffafd;
+  --ink:#492537;
+  --muted:#947786;
+  --line:#f0d9e4;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;padding:18px 14px 45px;
+  color:var(--ink);font-family:Georgia,"Times New Roman",serif;
+  background:
+    radial-gradient(ellipse at 10% 5%,#ffd9e8,transparent 35%),
+    radial-gradient(ellipse at 90% 25%,#f9d9e7,transparent 32%),
+    linear-gradient(145deg,#fff7fa,#ffeaf2 55%,#fff5f8);
+}
+.container{max-width:520px;margin:22px auto}
+.card,.admin-card{
+  background:rgba(255,255,255,.95);
+  border:1px solid rgba(255,255,255,.9);
+  border-radius:28px;padding:26px 22px;margin-bottom:22px;
+  box-shadow:0 18px 55px rgba(116,22,63,.09);
+}
+.brand{text-align:center;padding:10px 0 22px}
+.heart-icon{font-size:42px;display:block;margin-bottom:8px}
+h1{font-size:clamp(32px,8vw,42px);letter-spacing:-1.5px;color:var(--wine);margin:0}
+.tagline{color:var(--muted);font-size:16px;line-height:1.6;margin:12px 0 0}
+.eyebrow{
+  color:var(--rose);font:700 11px Arial,sans-serif;
+  letter-spacing:3px;text-transform:uppercase;text-align:center;
+}
+label.field-label{
+  display:block;color:var(--wine);font:700 15px Arial,sans-serif;
+  margin:20px 0 9px;
+}
+input[type=text],input[type=email],input[type=password],select{
+  width:100%;min-height:52px;padding:14px;
+  border:1px solid var(--line);border-radius:14px;
+  background:#fffafd;color:var(--ink);font:16px Arial,sans-serif;
+  outline:none;
+}
+input:focus,select:focus{border-color:var(--rose);box-shadow:0 0 0 3px #c52d6d18}
+.consent{
+  display:flex;align-items:flex-start;gap:11px;margin:22px 0;
+  color:#68485a;font:14px/1.65 Arial,sans-serif;
+}
+.consent input{width:20px;height:20px;flex-shrink:0;margin-top:2px;accent-color:var(--rose)}
+button{
+  width:100%;min-height:49px;padding:14px 16px;margin-top:9px;
+  border:0;border-radius:14px;cursor:pointer;font:700 15px Arial,sans-serif;
+  transition:transform .18s,filter .18s;
+}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.primary{color:white;background:linear-gradient(110deg,#a81e59,#e04486);box-shadow:0 8px 20px #c52d6d30}
+.secondary{color:var(--wine);background:#fff0f6;border:1px solid var(--line)}
+#status,#adminStatus{font:13px/1.6 Arial,sans-serif;color:#a1265d;overflow-wrap:anywhere}
+#result{
+  display:none;margin-top:24px;padding:28px 17px;text-align:center;
+  border:1px solid #f8dce8;border-radius:24px;
+  background:radial-gradient(circle at 50% 0%,#ffe0ec,transparent 60%),linear-gradient(145deg,#fff2f7,#fff9fc);
+  animation:reveal .45s ease both;
+}
+@keyframes reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.result-caption{font:700 11px Arial,sans-serif;letter-spacing:3px;color:var(--muted)}
+#score{font:700 clamp(60px,16vw,78px)/1 Arial,sans-serif;letter-spacing:-3px;color:var(--rose);margin:18px 0}
+#matchTitle{font-size:26px;color:var(--wine);margin:15px 0 10px}
+#matchMessage{font:15px/1.7 Arial,sans-serif;color:#795568}
+.share{color:var(--wine);background:transparent}
+.disclaimer{font:12px/1.7 Arial,sans-serif;color:#9a8290;margin:20px 0 0}
+details{background:white;border-radius:22px;padding:20px;box-shadow:0 12px 35px #74163f10}
+summary{cursor:pointer;color:var(--wine);font:700 16px Arial,sans-serif;line-height:1.6}
+.admin-card{padding:18px 14px;margin-top:16px;box-shadow:none;border-color:var(--line)}
+.admin-heading{color:var(--wine);font-size:23px;margin:4px 0 8px}
+.admin-note{font:13px/1.6 Arial,sans-serif;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}
+.stat{padding:16px 10px;background:var(--blush);border:1px solid var(--line);border-radius:16px}
+.stat-label{font:11px/1.5 Arial,sans-serif;color:var(--muted)}
+.stat-value{font:700 26px Arial,sans-serif;color:var(--wine);margin-top:7px;overflow-wrap:anywhere}
+.filters{display:grid;gap:10px;margin:18px 0}
+.entry{padding:15px;margin:12px 0;border:1px solid var(--line);border-radius:15px;background:#fffafd;overflow-wrap:anywhere}
+.entry strong{font:700 15px Arial,sans-serif;color:var(--wine)}
+.entry p{font:13px/1.6 Arial,sans-serif;color:#795568;margin:8px 0}
+.entry .delete{background:#fff0f3;color:#a1265d;font-size:13px;min-height:42px}
+.pill{display:inline-block;padding:6px 10px;border-radius:20px;background:#ffe2ee;color:var(--wine);font:700 12px Arial,sans-serif}
+.empty{padding:18px;text-align:center;color:var(--muted);font:14px/1.6 Arial,sans-serif}
+.small{font:12px/1.6 Arial,sans-serif;color:var(--muted)}
+[hidden]{display:none!important}
+@media(min-width:420px){.card{padding:30px 27px}.filters{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+
+<body>
+<main class="container">
+
+<section class="card">
+  <header class="brand">
+    <span class="heart-icon">💗</span>
+    <div class="eyebrow">A little romance, a little magic</div>
+    <h1>LoveLuck</h1>
+    <p class="tagline">Two names. One little love story.</p>
+  </header>
+
+  <form id="loveForm">
+    <label class="field-label" for="yourName">Your name</label>
+    <input id="yourName" type="text" maxlength="60" placeholder="Enter your name" autocomplete="given-name" required>
+
+    <label class="field-label" for="theirName">Their name</label>
+    <input id="theirName" type="text" maxlength="60" placeholder="Enter their name" required>
+
+    <label class="consent" for="consent">
+      <input id="consent" type="checkbox" required>
+      <span>I agree that the names I enter and the score may be stored and viewed by the website owner. I understand that I can leave this box unchecked, but then I cannot view my result.</span>
+    </label>
+
+    <button class="primary" type="submit">Discover Our Love Score ♡</button>
+  </form>
+
+  <p id="status" role="status" aria-live="polite"></p>
+
+  <section id="result" aria-live="polite">
+    <div class="result-caption">YOUR LOVE LUCK SCORE</div>
+    <div id="score">0%</div>
+    <h2 id="matchTitle">Lovely Match 💖</h2>
+    <p id="matchMessage"></p>
+    <button class="share" id="shareButton" type="button">♡ Share Your Result</button>
+  </section>
+
+  <p class="disclaimer">A playful name game, made with love. This score is for entertainment only and cannot measure real feelings.</p>
+</section>
+
+<details>
+  <summary>🔐 Owner Admin Dashboard</summary>
+  <div class="admin-card">
+    <h2 class="admin-heading">Welcome back, Owner</h2>
+    <p class="admin-note">Sign in to view and manage consented submissions.</p>
+
+    <form id="loginForm">
+      <label class="field-label" for="adminEmail">Owner email</label>
+      <input id="adminEmail" type="email" autocomplete="username" placeholder="Your owner email" required>
+
+      <label class="field-label" for="adminPassword">Password</label>
+      <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Your password" required>
+
+      <button class="primary" type="submit">Secure Owner Login</button>
+    </form>
+
+    <p id="adminStatus" role="status" aria-live="polite"></p>
+
+    <section id="adminControls" hidden>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">TOTAL ENTRIES</div><div class="stat-value" id="totalStat">0</div></div>
+        <div class="stat"><div class="stat-label">AVERAGE SCORE</div><div class="stat-value" id="averageStat">—</div></div>
+        <div class="stat"><div class="stat-label">SCORES 80%+</div><div class="stat-value" id="highStat">0</div></div>
+        <div class="stat"><div class="stat-label">DISPLAYED</div><div class="stat-value" id="shownStat">0</div></div>
+      </div>
+
+      <label class="field-label" for="searchEntries">Search names</label>
+      <input id="searchEntries" type="text" placeholder="Search either name...">
+
+      <div class="filters">
+        <div>
+          <label class="field-label" for="scoreFilter">Filter by score</label>
+          <select id="scoreFilter">
+            <option value="all">All scores</option>
+            <option value="high">80% and above</option>
+            <option value="medium">50%–79%</option>
+            <option value="low">Below 50%</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="sortFilter">Sort entries</label>
+          <select id="sortFilter">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="scoreHigh">Highest score</option>
+            <option value="scoreLow">Lowest score</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="secondary" id="refreshButton" type="button">↻ Refresh Entries</button>
+      <button class="secondary" id="logoutButton" type="button">Log Out</button>
+      <p class="small">For larger datasets, this dashboard loads up to 1,000 entries at a time.</p>
+      <div id="entries"></div>
+    </section>
+  </div>
+</details>
+
+</main>
+
+<script>
+const SUPABASE_URL = 'https://dzlirozozphruqpdtdrj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_IEGqmuSPIbJzWUZlZ0yX5w_ZmqfnP38';
+
+const db = window.supabase
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
+
+const $ = id => document.getElementById(id);
+let latestResult = null;
+let allEntries = [];
+
+function calculateScore(name1, name2) {
+  const combined = [name1.trim().toLowerCase(), name2.trim().toLowerCase()]
+    .sort().join('|');
+  let hash = 0;
+  for (let i = 0; i < combined.length; i++) {
+    hash = (hash * 31 + combined.charCodeAt(i)) >>> 0;
+  }
+  return hash % 101;
+}
+
+function getMatch(score) {
+  if (score >= 90) return {
+    title: 'Dreamy Match 💖',
+    message: 'Strong love vibes in this playful name game!'
+  };
+  if (score >= 80) return {
+    title: 'Made for the Movies 💞',
+    message: 'A dreamy score for this name combination!'
+  };
+  if (score >= 65) return {
+    title: 'Lovely Match 💕',
+    message: 'A sweet result with plenty of romantic vibes!'
+  };
+  if (score >= 50) return {
+    title: 'Cute Connection 💗',
+    message: 'This name combination has a little spark!'
+  };
+  return {
+    title: 'Unexpected Pair 🌷',
+    message: 'Every great story has its own surprises!'
+  };
+}
+
+function hideResult() {
+  $('result').style.display = 'none';
+  latestResult = null;
+}
+
+$('consent').addEventListener('change', () => {
+  if (!$('consent').checked) {
+    hideResult();
+    $('status').textContent = 'Please confirm consent before viewing your result.';
+  } else {
+    $('status').textContent = '';
+  }
+});
+
+$('loveForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  hideResult();
+
+  const yourName = $('yourName').value.trim();
+  const theirName = $('theirName').value.trim();
+
+  if (!$('consent').checked) {
+    $('status').textContent = 'Please tick the consent box to see your result. ❤️';
+    return;
+  }
+
+  if (!yourName || !theirName) {
+    $('status').textContent = 'Please enter both names.';
+    return;
+  }
+
+  const score = calculateScore(yourName, theirName);
+  const match = getMatch(score);
+
+  latestResult = { yourName, theirName, score };
+  $('score').textContent = score + '%';
+  $('matchTitle').textContent = match.title;
+  $('matchMessage').textContent = match.message;
+  $('result').style.display = 'block';
+  $('status').textContent = '';
+
+  if (!db) {
+    $('status').textContent = 'Your result is ready, but the database connection is unavailable.';
+    return;
+  }
+
+  const { error } = await db.from('love_entries').insert([{
+    your_name: yourName,
+    their_name: theirName,
+    score: score,
+    consent: true
+  }]);
+
+  if (error) {
+    console.error('Save failed:', error.message);
+    $('status').textContent = 'Your result is ready, but it could not be saved.';
+  }
+});
+
+$('shareButton').addEventListener('click', async () => {
+  if (!latestResult || !$('consent').checked) return;
+
+  const match = getMatch(latestResult.score);
+  const text = '💗 LoveLuck 💗\n' +
+    latestResult.yourName + ' + ' + latestResult.theirName +
+    '\nLove score: ' + latestResult.score + '%\n' +
+    match.title + '\nFor entertainment only!';
+
+  if (navigator.share) {
+    try {
+      await navigator.share({text});
+    } catch (error) {
+      if (error.name !== 'AbortError') console.error(error);
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(text);
+      $('status').textContent = 'Result copied to clipboard.';
+    } catch {
+      window.prompt('Copy your result:', text);
+    }
+  }
+});
+
+// Owner dashboard authentication
+$('loginForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  if (!db) {
+    $('adminStatus').textContent = 'Database connection unavailable.';
+    return;
+  }
+
+  $('adminStatus').textContent = 'Signing in...';
+
+  const {error} = await db.auth.signInWithPassword({
+    email: $('adminEmail').value.trim(),
+    password: $('adminPassword').value
+  });
+
+  if (error) {
+    $('adminStatus').textContent = 'Login failed. Check your email and password.';
+    return;
+  }
+
+  $('adminStatus').textContent = 'Signed in successfully.';
+  $('adminControls').hidden = false;
+  await loadEntries();
+});
+
+async function loadEntries() {
+  $('entries').replaceChildren();
+  $('adminStatus').textContent = 'Loading entries...';
+
+  const {data, error} = await db
+    .from('love_entries')
+    .select('id, your_name, their_name, score, created_at')
+    .order('created_at', {ascending: false})
+    .limit(1000);
+
+  if (error) {
+    $('adminStatus').textContent =
+      'Could not load entries. Verify owner policies and database permissions.';
+    console.error('Load failed:', error.message);
+    return;
+  }
+
+  allEntries = data || [];
+  updateStatistics();
+  renderEntries();
+  $('adminStatus').textContent = 'Entries loaded successfully.';
+}
+
+function updateStatistics() {
+  const total = allEntries.length;
+  const average = total
+    ? Math.round(allEntries.reduce((sum, item) => sum + Number(item.score), 0) / total)
+    : null;
+  const high = allEntries.filter(item => Number(item.score) >= 80).length;
+
+  $('totalStat').textContent = total;
+  $('averageStat').textContent = average === null ? '—' : average + '%';
+  $('highStat').textContent = high;
+}
+
+function renderEntries() {
+  const query = $('searchEntries').value.trim().toLowerCase();
+  const scoreFilter = $('scoreFilter').value;
+  const sortFilter = $('sortFilter').value;
+
+  let filtered = allEntries.filter(item => {
+    const nameMatch =
+      String(item.your_name).toLowerCase().includes(query) ||
+      String(item.their_name).toLowerCase().includes(query);
+
+    const score = Number(item.score);
+    let scoreMatch = true;
+
+    if (scoreFilter === 'high') scoreMatch = score >= 80;
+    if (scoreFilter === 'medium') scoreMatch = score >= 50 && score < 80;
+    if (scoreFilter === 'low') scoreMatch = score < 50;
+
+    return nameMatch && scoreMatch;
+  });
+
+  filtered.sort((a, b) => {
+    if (sortFilter === 'oldest') {
+      return new Date(a.created_at) - new Date(b.created_at);
+    }
+    if (sortFilter === 'scoreHigh') return Number(b.score) - Number(a.score);
+    if (sortFilter === 'scoreLow') return Number(a.score) - Number(b.score);
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+
+  $('shownStat').textContent = filtered.length;
+  $('entries').replaceChildren();
+
+  if (!filtered.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = allEntries.length
+      ? 'No entries match your search or filter.'
+      : 'No entries have been submitted yet.';
+    $('entries').appendChild(empty);
+    return;
+  }
+
+  filtered.forEach(item => {
+    const card = document.createElement('article');
+    card.className = 'entry';
+
+    const title = document.createElement('strong');
+    title.textContent = item.your_name + ' + ' + item.their_name;
+
+    const score = document.createElement('p');
+    score.textContent = 'Love score: ' + item.score + '%';
+
+    const pill = document.createElement('span');
+    pill.className = 'pill';
+    pill.textContent = getMatch(Number(item.score)).title;
+
+    const date = document.createElement('p');
+    date.textContent = item.created_at
+      ? new Date(item.created_at).toLocaleString()
+      : '';
+
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete';
+    deleteButton.type = 'button';
+    deleteButton.textContent = 'Delete Entry';
+
+    deleteButton.addEventListener('click', async () => {
+      if (!confirm('Permanently delete this entry?')) return;
+
+      const {error} = await db
+        .from('love_entries')
+        .delete()
+        .eq('id', item.id);
+
+      if (error) {
+        $('adminStatus').textContent =
+          'Could not delete entry. Check database permissions.';
+        console.error('Delete failed:', error.message);
+        return;
+      }
+
+      allEntries = allEntries.filter(entry => entry.id !== item.id);
+      updateStatistics();
+      renderEntries();
+      $('adminStatus').textContent = 'Entry deleted.';
+    });
+
+    card.append(title, score, pill, date, deleteButton);
+    $('entries').appendChild(card);
+  });
+}
+
+$('searchEntries').addEventListener('input', renderEntries);
+$('scoreFilter').addEventListener('change', renderEntries);
+$('sortFilter').addEventListener('change', renderEntries);
+$('refreshButton').addEventListener('click', loadEntries);
+
+$('logoutButton').addEventListener('click', async () => {
+  const {error} = await db.auth.signOut();
+
+  if (error) {
+    $('adminStatus').textContent = 'Could not log out.';
+    return;
+  }
+
+  allEntries = [];
+  $('adminControls').hidden = true;
+  $('loginForm').reset();
+  $('entries').replaceChildren();
+  $('adminStatus').textContent = 'Logged out.';
+});
+</script>
+</body>
+</html>
